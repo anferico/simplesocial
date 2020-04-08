@@ -23,32 +23,33 @@ public class FriendsListSupplier implements Runnable
 		try
 		{
 			BufferedReader reader = new BufferedReader(
-										new InputStreamReader(
-											this.communicationSocket.getInputStream()));
+				new InputStreamReader(
+                    this.communicationSocket.getInputStream()
+                )
+            );
 			
-			// Leggo il comando simbolico 'GET_FRIENDS' e il token dalla
-			// connessione stabilita col client
-			String command = reader.readLine();
+			// Read the dummy content 'GET_FRIENDS'
+            String command = reader.readLine();
+            // Read the user token
 			String token = reader.readLine();
 			
-			// La risposta da spedire sulla connessione
+			// The reply to be sent over the connection
 			String reply = null;
 			
-			// L'utente che ha richiesto la lista dei propri amici
+			// The user who issued the request
 			SocialUser user = manager.userFromToken(token);
 			if (user == null)
 			{
-				// L'utente risulta offline
+				// The user appears to be offline
 				reply = "TOKEN_EXPIRED";
 			}
 			else
 			{   
-				// L'utente risulta correttamente online 				    			   
+				// The user is online 				    			   
 				
 				String username = user.getUsername();
 				
-				// Costruisco via via la lista degli amici di 'username', secondo un
-				// formato concordato col client
+				// Build the friends list
 				StringBuilder friendsList = new StringBuilder("");
 				
 				List<SocialUser> theirFriends = manager.getFriends(username);
@@ -57,7 +58,7 @@ public class FriendsListSupplier implements Runnable
 					SocialUser su = theirFriends.get(i);
 					if (su.isOnline())
 					{
-						// '!' indica che l'utente è online
+						// '!' intimates that the user is online
 						friendsList.append("!");
 					}
 					
@@ -65,20 +66,21 @@ public class FriendsListSupplier implements Runnable
 					
 					if (i < theirFriends.size() - 1)
 					{
-						// '-' separa gli amici
+						// '-' separates a friend from the others
 						friendsList.append("-");
 					}
 				}				
 				
-    			// Il contenuto della risposta diventa la lista degli amici
+    			// The content of the reply becomes the list of friends
     			reply = friendsList.toString();        			        						
 			}
 			
-			// Scrivo la risposta al client
+			// Send the reply to the client
 			BufferedWriter writer = new BufferedWriter(
-										new OutputStreamWriter(
-											this.communicationSocket.getOutputStream()));
-			
+				new OutputStreamWriter(
+                    this.communicationSocket.getOutputStream()
+                )
+            );
 			writer.write(reply);
 			writer.newLine();
 			writer.flush();
@@ -86,13 +88,13 @@ public class FriendsListSupplier implements Runnable
 		}
 		catch (IOException e)
 		{
-			System.out.println("Si è verificato un errore durante il recupero degli amici.");
+			System.out.println("An error occurred while trying to retrieve the list of friends.");
 		}
 		finally
 		{
 			try
 			{
-				// Chiudo la connessione con il client
+				// Close the connection with the client
 				if (this.communicationSocket != null) { this.communicationSocket.close(); }				
 			}
 			catch (IOException e) { ; }

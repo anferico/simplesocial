@@ -23,35 +23,36 @@ public class UsersSearchSupplier implements Runnable
 		try
 		{
 			BufferedReader reader = new BufferedReader(
-										new InputStreamReader(
-											this.communicationSocket.getInputStream()));
+                new InputStreamReader(
+                    this.communicationSocket.getInputStream()
+                )
+            );
 			
-			// Leggo la stringa per filtrare gli utenti e il token dalla
-			// connessione stabilita col client
+            // Read the search key
 			String filter = reader.readLine();
 			if (filter.equals("<nofilter>"))
 			{
-				// Valore speciale per indicare l'assenza di filtri
+				// Special value corresponding to "no filters"
 				filter = null;
-			}
-			String token = reader.readLine();
+            }
+            // Read the user token        
+            String token = reader.readLine();
 			
-			// La risposta da spedire sulla connessione
+			// The reply I'll be sending over the connection
 			String reply = null;
 			
-			// L'utente che ha richiesto la lista degli iscritti a Simple Social
+			// The user who issued the search
 			SocialUser user = manager.userFromToken(token);
 			if (user == null)
 			{
-				// L'utente risulta offline
+				// The user appears to be offline
 				reply = "TOKEN_EXPIRED";
 			}
 			else
 			{   
-				// L'utente risulta correttamente online 				    			   
+				// The user is online			    			   
 				
-				// Costruisco via via la lista degli utenti secondo un
-				// formato concordato col client
+                // Build the resulting list 
 				StringBuilder friendsList = new StringBuilder();
 				
 				List<SocialUser> ssUsers = manager.getUsers(filter);
@@ -62,20 +63,21 @@ public class UsersSearchSupplier implements Runnable
 					
 					if (i < ssUsers.size() - 1)
 					{
-						// '-' separa gli utenti
+						// '-' separates each user from the others
 						friendsList.append("-");
 					}
 				}				
 				
-    			// Il contenuto della risposta diventa la lista degli utenti filtrati
+    			// The content of the reply is the list of filtered users
     			reply = friendsList.toString();        			        						
 			}
 			
-			// Scrivo la risposta al client
+			// Send the reply to the client
 			BufferedWriter writer = new BufferedWriter(
-										new OutputStreamWriter(
-											this.communicationSocket.getOutputStream()));
-			
+                new OutputStreamWriter(
+                    this.communicationSocket.getOutputStream()
+                )
+            );
 			writer.write(reply);
 			writer.newLine();
 			writer.flush();
@@ -83,13 +85,13 @@ public class UsersSearchSupplier implements Runnable
 		}
 		catch (IOException e)
 		{
-			System.out.println("Si è verificato un errore durante il recupero degli utenti.");
+			System.out.println("An error occurred while retrieving the list of users");
 		}
 		finally
 		{
 			try
 			{
-				// Chiudo la connessione con il client
+				// Close the connection with the client
 				if (this.communicationSocket != null) { this.communicationSocket.close(); }				
 			}
 			catch (IOException e) { ; }

@@ -6,6 +6,6 @@ public class ExpiredTokenException extends SocialException
 
 	public ExpiredTokenException()
 	{
-		super("La sessione è scaduta, si prega di effettuare di nuovo il login.");
+		super("Session expired. Please log in again.");
 	}
 }

@@ -22,18 +22,17 @@ public class MulticastGroupListener implements Runnable
 			{
 				MulticastSocket mcSock = new MulticastSocket(Constants.SERVER_MULTICAST_GROUP_PORT);
 				
-				// Entro a far parte del gruppo di multicast
+				// Join the multicast group
 				mcSock.joinGroup(InetAddress.getByName(Constants.SERVER_MULTICAST_GROUP_ADDRESS));
-				
 				
 				byte[] buf = new byte[512];
 				DatagramPacket keepAlivePacket = new DatagramPacket(buf, buf.length); 
-				// Ricevo il messaggio di keep-alive
+				// Receive the keep-alive message
 				mcSock.receive(keepAlivePacket);
 				
 				DatagramSocket respSocket = new DatagramSocket();
 				
-				// Costruisco un nuovo datagram UDP con l'username dell'utente
+				// Build a UDP datagram containing the username
 				byte[] usernameBuf = username.getBytes();
 				DatagramPacket respPacket = new DatagramPacket(usernameBuf, usernameBuf.length);
 				
@@ -46,7 +45,7 @@ public class MulticastGroupListener implements Runnable
 			}
 			catch (IOException e)
 			{
-				System.out.println("Si è verificato un errore in MulticastGroupListener.");
+				System.out.println("An error occurred in MulticastGroupListener.");
 				e.printStackTrace();
 			}
 		}

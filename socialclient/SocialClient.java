@@ -11,32 +11,27 @@ import simplesocial.socialserver.*;
 
 public class SocialClient implements ISocialClient
 {	
-	private String myUsername;       // L'username che ho scelto
-	private String token; 			 // Token spedito dal server in fase di login
-	private Date tokenReceptionDate; // Data e tempo di ricezione del token 
+	private String myUsername;       // The username I chose
+	private String token; 			 // Login token
+	private Date tokenReceptionDate; // Date and time of reception of the token
 
-	// La lista dei contenuti pubblicati dagli utenti che seguo
+	// Contents published by users I follow
 	private List<String> availableContents;
-	// La lista delle richieste di amicizia ricevute ma non ancora confermate
+	// Pending friendship requests
 	private List<String> pendingFriendshipRequests;
-	// Il thread che accoglie i messaggi spediti al gruppo di multicast
+    // Thread that receives messages sent to the multicast group
 	private Thread mcGroupMemberThread = null;
-	// Il thread che attende l'apertura di connessioni da parte del server quando
-	// quest'ultimo vuole verificare se è online o meno
+    // Thread that responds to "probing" requests from the server
 	private Thread probeListenerThread = null;
-	// Il thread che accoglie le richieste di amicizia destinate a questo utente
+	// Thread that catches new friendship requests
 	private Thread requestsListenerThread = null;
 	
-	public SocialClient()
-	{
-		
-	}
+	public SocialClient() { }
 	
 	@Override
-	public void register(String username, String password)
-			throws SocialException
+	public void register(String username, String password) throws SocialException
 	{
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
@@ -44,18 +39,18 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{						
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 		
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
 		try
 		{
-			
-			// Invio al server username e password
+            // Send username and password to the server
+            
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			
 			writer.write(username);
@@ -65,17 +60,21 @@ public class SocialClient implements ISocialClient
 						
 			writer.flush();
 			
-			// Aspetto la risposta dal server
-			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));			
+			// Wait for the server's reply
+			reader = new BufferedReader(
+                new InputStreamReader(
+                    sock.getInputStream()
+                )
+            );			
 			reply = reader.readLine();			
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante la registrazione.");
+			throw new SocialException("An error occurred during the registration.");
 		}
 		finally
 		{
-			// Termino la comunicazione chiudendo la connessione col server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -83,19 +82,20 @@ public class SocialClient implements ISocialClient
 			catch (IOException e){ ; }
 		}
 		
-		// Analizzo la risposta del server
+		// Analyze the server's reply
 		if (reply.equals("USERNAME_ALREADY_TAKEN"))
     	{
-    		throw new SocialException("Spiacente, l'username scelto è già stato assegnato.");
+    		throw new SocialException(
+                "The chosen username is not available. Please choose another one."
+            );
     	}
 		
 	}
 
 	@Override
-	public void login(String username, String password)
-			throws SocialException
+	public void login(String username, String password)	throws SocialException
 	{
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
@@ -103,34 +103,28 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
-		
-		// La socket che verrà utilizzata per accogliere connessioni TCP dal
-		// server che hanno lo scopo di determinare se l'utente è online
+		// Socket used for receiving probing requests from the server
 		ServerSocket probeSock = null;
-		// La socket che verrà utilizzata per accogliere connessioni TCP dal
-		// server che hanno lo scopo di trasmettere le richieste di amicizia
-		// destinate a questo utente
+        // Socket used for receiving friendship requests
 		ServerSocket requestsSock = null;
 		try
 		{
 			probeSock = new ServerSocket(0);
 			requestsSock = new ServerSocket(0);
 			
-			// Invio al server: 
+			// Send: 
 			// - username 
 			// - password
-			// - indirizzo IP al quale è legata 'probeSock'
-			// - porta alla quale è legata 'probeSock'
-			// - indirizzo IP al quale è legata 'requestsSock'
-			// - porta alla quale è legata 'requestsSock'
+			// - socket address of 'probeSock'
+			// - socket address of 'requestsSock'
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			writer.write(username);
 			writer.newLine();
@@ -147,17 +141,17 @@ public class SocialClient implements ISocialClient
 			
 			writer.flush();
 			
-			// Aspetto la risposta dal server
+			// Wait for the server's reply
 			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			reply = reader.readLine();
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante il login.");
+			throw new SocialException("An error occurred during login.");
 		}
 		finally
 		{
-			// Chiudo la connessione con il server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -174,7 +168,7 @@ public class SocialClient implements ISocialClient
 			}
 			catch (IOException e){ ; }
 			
-			throw new SocialException("Username e/o password non validi.");
+			throw new SocialException("Invalid username or password.");
 		}
 		else if (reply.equals("ALREADY_LOGGED_IN"))
 		{
@@ -185,24 +179,26 @@ public class SocialClient implements ISocialClient
 			}
 			catch (IOException e){ ; }
 			
-			throw new SocialException("Il login per questo account è già stato effettuato.");
+			throw new SocialException("The user associated with this account has already logged in.");
 		}
 		else
 		{
-			// Registro il mio username e memorizzo il token che accompagnerà ogni messaggio trasmesso al server
+			// Save username and session token
 			myUsername = username;
 			token = reply;
 			tokenReceptionDate = new Date();
 		}
 				
 				
-		// Login effettuato correttamente
+		// Login succeded
 						
 		
 		try
 		{
-			// Cerco di recuperare eventuali richieste di amicizia e contenuti in sospeso
-			ObjectInputStream inStream = new ObjectInputStream(new FileInputStream(myUsername + ".pendingRequestsAndContents"));
+			// Retrieve pending friendship requests and new contents
+			ObjectInputStream inStream = new ObjectInputStream(
+                new FileInputStream(myUsername + ".pendingRequestsAndContents")
+            );
 			pendingFriendshipRequests = (List<String>) inStream.readObject();
 			availableContents = (List<String>) inStream.readObject();
 
@@ -210,8 +206,7 @@ public class SocialClient implements ISocialClient
 		}
 		catch (Exception e)
 		{
-			// Non è stato possibile leggere richieste di amicizia e contenuti in sospeso, perché non
-			// erano mai state salvate
+			// Nothing was saved, so nothing to retrieve
 			
 			availableContents = Collections.synchronizedList(new ArrayList<String>());
 			pendingFriendshipRequests = Collections.synchronizedList(new ArrayList<String>());
@@ -220,7 +215,7 @@ public class SocialClient implements ISocialClient
 		
 		try
 		{
-    		// Registro la callback per le notifiche
+    		// Register notification callbacks
     		Registry registry = LocateRegistry.getRegistry(Constants.SERVER_RMI_REGISTRY_PORT);
     		
     		IFollowingService followingService = (IFollowingService) registry.lookup("FOLLOWING_SERVICE");
@@ -237,11 +232,11 @@ public class SocialClient implements ISocialClient
 			}
 			catch (IOException f){ ; }
 			
-			throw new SocialException("Si è verificato un errore durante il completamento del login.");			
+			throw new SocialException("An error occurred while finalizing the login procedure.");			
 		}
-		
-		
-		// Faccio partire il thread che risponderà ai messaggi di keep-alive
+        
+        
+		// Start the thread that will reply to keep-alive messages
 		MulticastGroupListener mcGroupMember = new MulticastGroupListener(username);
 		if (mcGroupMemberThread != null)
 		{
@@ -250,7 +245,7 @@ public class SocialClient implements ISocialClient
 		mcGroupMemberThread = new Thread(mcGroupMember);
 		mcGroupMemberThread.start();		
 		
-		// Faccio partire il thread che risponde alle richieste del server: sei online?
+		// Start the thread that will respond to probing requests from the server
 		ProbeMessagesListener probeListener = new ProbeMessagesListener(probeSock);
 		if (probeListenerThread != null)
 		{
@@ -259,8 +254,11 @@ public class SocialClient implements ISocialClient
 		probeListenerThread = new Thread(probeListener);
 		probeListenerThread.start();
 		
-		// Faccio partire il thread che accoglie le richieste di amicizia spedite
-		FriendshipRequestsListener requestsListener = new FriendshipRequestsListener(requestsSock, pendingFriendshipRequests);
+		// Start the thread that will receive friendship requests
+		FriendshipRequestsListener requestsListener = new FriendshipRequestsListener(
+            requestsSock, 
+            pendingFriendshipRequests
+        );
 		if (requestsListenerThread != null)
 		{
 			requestsListenerThread.interrupt();
@@ -271,16 +269,15 @@ public class SocialClient implements ISocialClient
 	}
 
 	@Override
-	public void sendFriendshipRequest(String username) 
-			throws SocialException
+	public void sendFriendshipRequest(String username) throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
 		}
 		
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
@@ -288,37 +285,37 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
 		try
 		{
-			// Invio al server l'username dell'utente che voglio aggiungere come amico
+			// Send the username of the user I want to add as a friend
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			writer.write(username);
 			writer.newLine();
-			// Allego il token
+			// Attach the token
 			writer.write(token.toString());
 			writer.newLine();	
 			
 			writer.flush();
 			
-			// Aspetto la risposta dal server
+			// Wait for the server's reply
 			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			reply = reader.readLine();
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante l'invio della richiesta.");
+			throw new SocialException("An error occurred while sending the friendship request.");
 		}
 		finally
 		{
-			// Chiudo la connessione con il server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -326,7 +323,7 @@ public class SocialClient implements ISocialClient
 			catch (IOException e){ ; }
 		}
 		
-		// Analizzo la risposta del server
+		// Analyze the server's reply
 		if (!reply.equals("FRIENDSHIP_REQUEST_FORWARDED"))
 		{
 			SocialException se = null;
@@ -336,15 +333,15 @@ public class SocialClient implements ISocialClient
 			}
 			else if (reply.equals("FRIENDSHIP_REQUEST_ALREADY_SENT"))
 			{
-				se = new SocialException("Hai già spedito una richiesta di amicizia a questo utente in passato.");
+				se = new SocialException("You already sent a friendship request to this user in the past.");
 			}
 			else if (reply.equals("USER_OFFLINE"))
 			{
-				se = new SocialException("L'utente risulta offline. Prova più tardi.");
+				se = new SocialException("The user is offline. Try again later.");
 			}
 			else if (reply.equals("UNKNOWN_USER"))
 			{
-				se = new SocialException("L'utente specificato è inesistente.");
+				se = new SocialException("The specified user does not exist.");
 			}
 			
 			throw se;
@@ -352,10 +349,9 @@ public class SocialClient implements ISocialClient
 	}
 	
 	@Override
-	public List<String> getPendingFriendshipRequests() 
-			throws SocialException
+	public List<String> getPendingFriendshipRequests() throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
@@ -365,16 +361,15 @@ public class SocialClient implements ISocialClient
 	}
 
 	@Override
-	public void respondToFriendshipRequest(String username, boolean choice) 
-			throws SocialException
+	public void respondToFriendshipRequest(String username, boolean choice) throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
 		}
 		
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
@@ -382,40 +377,39 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
 		try
 		{
-			// Invio al server l'username dell'utente che ha spedito la richiesta
-			// e la scelta del destinatario
+			// Send the username and the choice to the server
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			writer.write(username);
 			writer.newLine();
 			writer.write(String.valueOf(choice));
 			writer.newLine();
-			// Allego il token
+			// Attach the token
 			writer.write(token.toString());
 			writer.newLine();				
 			
 			writer.flush();
 			
-			// Aspetto la risposta dal server
+			// Wait for the server's reply
 			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			reply = reader.readLine();
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante la conferma dell'amicizia.");
+			throw new SocialException("An error occurred while accepting/denying the friendship request.");
 		}
 		finally
 		{
-			// Chiudo la connessione con il server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -423,7 +417,7 @@ public class SocialClient implements ISocialClient
 			catch (IOException e){ ; }
 		}
 		
-		// Analizzo la risposta del server
+		// Analyze the server's reply
 		if (!reply.equals("FRIENDS_UPDATED"))
 		{	
 			SocialException se = null;
@@ -433,72 +427,68 @@ public class SocialClient implements ISocialClient
 	    	}
 	    	else if (reply.equals("MISSING_ORIGINAL_REQUEST"))
 	    	{
-	    		se = new SocialException("Si sta tentando di rispondere ad una richiesta di amicizia scaduta o inesistente.");
+	    		se = new SocialException("The friendship request has expired or it doesn't exist.");
 	    	}
 	    	else if (reply.equals("ALREADY_FRIENDS"))
 	    	{
-	    		se = new SocialException("Hai già risposto a questa richiesta in passato.");
+	    		se = new SocialException("You already replied to this friendship request in the past.");
 	    	}
 			
 			throw se;			
 		}
-		
-		// Ho riposto correttamente alla richiesta d'amicizia, quindi la cancello dalla
-		// lista di quelle in sospeso		
+			
 		pendingFriendshipRequests.removeIf(pf -> pf.equals(username));
-		
 	}
 
 	@Override
-	public List<Friend> getFriends()
-			throws SocialException
+	public List<Friend> getFriends() throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
 		}
 		
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
-			// java.net.ConnectException: Connection refused (alla seconda volta)
+			// java.net.ConnectException: Connection refused (the second time)
 			sock = new Socket(Constants.SERVER_NAME, Constants.SERVER_FRIENDS_PORT);
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 		
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
 		try
 		{
-			// Invio al server la richiesta
+			// Send the request to the server
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			writer.write("GET_FRIENDS");
 			writer.newLine();
-			// Allego il token
+			// Attach the token
 			writer.write(token.toString());
 			writer.newLine();		
 			
 			writer.flush();
 			
-			// Aspetto la risposta dal server
+			// Wait for the server's reply
 			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			reply = reader.readLine();
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante il recupero degli amici.");
+			throw new SocialException("An error occurred while trying to retrieve a list of your friends.");
 		}
 		finally
 		{
-			// Chiudo la connessione con il server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -506,14 +496,14 @@ public class SocialClient implements ISocialClient
 			catch (IOException e){ ; }
 		}
 		
-		// Analizzo la risposta del server
+		// Analyze the server's reply
     	if (reply.equals("TOKEN_EXPIRED"))
     	{
     		throw new ExpiredTokenException();
     	}
 
     	
-		// La risposta è positiva, quindi itero sulla lista di amici spedita dal server
+		// Loop over the friends list sent by the server
     	List<Friend> friends = new ArrayList<Friend>();
     	if (reply.length() > 0)
     	{
@@ -535,16 +525,15 @@ public class SocialClient implements ISocialClient
 	}
 
 	@Override
-	public String[] findUsers(String searchKey)
-			throws SocialException
+	public String[] findUsers(String searchKey)	throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
 		}
 		
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
@@ -552,38 +541,38 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 		
 		
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
 		try
 		{
-			// Invio al server la chiave di ricerca
+			// Send the search key to the server
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			writer.write(searchKey);
 			writer.newLine();
-			// Allego il token
+			// Attach the token
 			writer.write(token.toString());
 			writer.newLine();				
 			
 			writer.flush();
 			
-			// Aspetto la risposta dal server
+			// Wait for the server's reply
 			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			reply = reader.readLine();
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante la ricerca.");
+			throw new SocialException("An error occured while searching for a user.");
 		}
 		finally
 		{
-			// Chiudo la connessione con il server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -591,30 +580,27 @@ public class SocialClient implements ISocialClient
 			catch (IOException e){ ; }
 		}
 		
-		// Analizzo la risposta del server
+		// Analyze the server's reply
     	if (reply.equals("TOKEN_EXPIRED"))
     	{
     		throw new ExpiredTokenException();
     	}	
 
-		// La risposta è positiva
-    	
 		String[] users = reply.split("-");
 		
 		return users;
 	}
 
 	@Override
-	public void publishContent(String content)
-			throws SocialException
+	public void publishContent(String content) throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
 		}
 		
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
@@ -622,37 +608,37 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
 		try
 		{
-			// Invio al server il contenuto che voglio pubblicare
+			// Send the content of my post to the server
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			writer.write(content);
 			writer.newLine();
-			// Allego il token
+			// Attach the token
 			writer.write(token.toString());
 			writer.newLine();			
 			
 			writer.flush();
 			
-			// Aspetto la risposta dal server
+			// Wait for the server's reply
 			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			reply = reader.readLine();
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante la pubblicazione del contenuto.");
+			throw new SocialException("An error occurred while trying to post the content.");
 		}
 		finally
 		{
-			// Chiudo la connessione con il server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -660,7 +646,7 @@ public class SocialClient implements ISocialClient
 			catch (IOException e){ ; }
 		}
 		
-		// Analizzo la risposta del server
+		// Analyze the server's reply
 		if (reply.equals("TOKEN_EXPIRED"))
 		{
 			throw new ExpiredTokenException();
@@ -668,10 +654,9 @@ public class SocialClient implements ISocialClient
 	}
 
 	@Override
-	public void followUser(String username)
-			throws SocialException
+	public void followUser(String username)	throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
@@ -686,24 +671,22 @@ public class SocialClient implements ISocialClient
 		}
 		catch (RemoteException | NotBoundException e)
 		{
-			throw new SocialException("Si è verificato un errore durante la registrazione del proprio interesse per l'utente \"" + username + "\".");
+			throw new SocialException("An error occurred while trying to follow \"" + username + "\".");
 		}
 	}
 
 	@Override
-	public List<String> getContents()
-			throws SocialException
+	public List<String> getContents() throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
 		}
 		
-		// I contenuti ricevuti dal social server vengono memorizzati in locale.
-		// Se un utente fa logout prima di aver letto i contenuti, questi vengono salvati su disco
-		// Una volta visualizzato, un messaggio viene cancellato.
-		
+        // Contents received from the server are stored locally. If a user logs out before reading
+        // them, such contents are stored to disk. Once read, a message is deleted.
+        
 		List<String> result = new ArrayList<String>(availableContents.size());
 		result.addAll(availableContents);
 		
@@ -713,16 +696,15 @@ public class SocialClient implements ISocialClient
 	}
 
 	@Override
-	public void logout()
-			throws SocialException
+	public void logout() throws SocialException
 	{
-		// Verifico la validità del token
+		// Check the validity of the token
 		if (!isTokenValid())
 		{
 			throw new ExpiredTokenException();
 		}
 		
-		// Creo la socket per la comunicazione con il server
+		// Socket for communicating with the server
 		Socket sock = null;
 		try
 		{
@@ -730,37 +712,37 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Non è stato possibile connettersi al server.");
+			throw new SocialException("Unable to connect to server.");
 		}
 
-		// Comincio la comunicazione con il server
+		// Begin communicating with the server
 		BufferedWriter writer = null;
 		BufferedReader reader = null;
 		String reply = null;
 		
 		try
 		{
-			// Invio al server il contenuto che voglio pubblicare
+			// Send the logout request to the server
 			writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
 			writer.write("LOGOUT");
 			writer.newLine();
-			// Allego il token
+			// Attach the token
 			writer.write(token);
 			writer.newLine();			
 			
 			writer.flush();
 			
-			// Aspetto la risposta dal server
+			// Wait for the server's reply
 			reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			reply = reader.readLine();
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante il logout.");
+			throw new SocialException("An error occurred while trying to log out.");
 		}
 		finally
 		{
-			// Chiudo la connessione con il server
+			// Close the connection with the server
 			try
 			{
 				if (sock != null) { sock.close(); }
@@ -768,22 +750,24 @@ public class SocialClient implements ISocialClient
 			catch (IOException e){ ; }
 		}
 		
-		// Analizzo la risposta del server
+		// Analyze the server's reply
 		if (reply.equals("TOKEN_EXPIRED"))
 		{
 			throw new ExpiredTokenException();
 		}
 		
 		
-		// Interrompo i thread che avevo lanciato subito dopo il login
+		// Stop the threads that were started right after the login
 		mcGroupMemberThread.interrupt();
 		probeListenerThread.interrupt();
 		requestsListenerThread.interrupt();
 		
-		// Salvo su disco eventuali contenuti non letti e richieste di amicizia non riscontrate
+        // Save unread contents and pending friendship requests to disk
 		try
 		{
-			ObjectOutputStream outStream = new ObjectOutputStream(new FileOutputStream(myUsername + ".pendingRequestsAndContents", false));
+			ObjectOutputStream outStream = new ObjectOutputStream(
+                new FileOutputStream(myUsername + ".pendingRequestsAndContents", false)
+            );
 			outStream.writeObject(pendingFriendshipRequests);
 			outStream.writeObject(availableContents);
 						
@@ -791,14 +775,12 @@ public class SocialClient implements ISocialClient
 		}
 		catch (IOException e)
 		{
-			throw new SocialException("Si è verificato un errore durante il completamento del logout");
+			throw new SocialException("An error occurred while finalizing the logout procedure.");
 		}
 		
-		// Resetto il mio username e invalido il mio token
 		myUsername = null;
 		token = null;
 		tokenReceptionDate = null;
-		
 	}
 	
 	private boolean isTokenValid()

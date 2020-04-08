@@ -24,10 +24,12 @@ public class RegistrationSupplier implements Runnable
 		try
 		{
 			BufferedReader reader = new BufferedReader(
-										new InputStreamReader(
-											this.communicationSocket.getInputStream()));
+				new InputStreamReader(
+                    this.communicationSocket.getInputStream()
+                )
+            );
 			
-			// Leggo username e password
+			// Read username and password
 			username = reader.readLine();
 			password = reader.readLine();
 			
@@ -42,10 +44,12 @@ public class RegistrationSupplier implements Runnable
 				reply = "USERNAME_ALREADY_TAKEN";
 			}
 			
-			// Scrivo la risposta
+			// Write the reply
 			BufferedWriter writer = new BufferedWriter(
-										new OutputStreamWriter(
-											this.communicationSocket.getOutputStream()));
+				new OutputStreamWriter(
+                    this.communicationSocket.getOutputStream()
+                )
+            );
 			
 			writer.write(reply);
 			writer.newLine();
@@ -54,13 +58,13 @@ public class RegistrationSupplier implements Runnable
 		}
 		catch (IOException e)
 		{
-			System.out.println("Si è verificato un errore durante la registrazione dell'utente\"" + username + "\".");
+			System.out.println("An error occurred while registering the user \"" + username + "\".");
 		}
 		finally
 		{
 			try
 			{
-				// Chiudo la connessione con il client
+				// Close the connection with the client
 				if (this.communicationSocket != null) { this.communicationSocket.close(); }				
 			}
 			catch (IOException e) { ; }

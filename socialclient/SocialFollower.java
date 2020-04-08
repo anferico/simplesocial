@@ -9,16 +9,14 @@ public class SocialFollower extends UnicastRemoteObject implements ISocialFollow
 	private static final long serialVersionUID = 1L;
 	private List<String> contents;
 	
-	protected SocialFollower(List<String> contents)
-			throws RemoteException
+	protected SocialFollower(List<String> contents)	throws RemoteException
 	{
 		super();
 		this.contents = contents;
 	}
 
 	@Override
-	public void onNewContentPublished(String newContent)
-			throws RemoteException
+	public void onNewContentPublished(String newContent) throws RemoteException
 	{
 		contents.add(newContent);
 	}

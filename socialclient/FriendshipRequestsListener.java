@@ -25,10 +25,12 @@ public class FriendshipRequestsListener implements Runnable
 				Socket communicationSocket = welcomingSocket.accept();
 				
 				BufferedReader reader = new BufferedReader(
-											new InputStreamReader(
-												communicationSocket.getInputStream()));
+					new InputStreamReader(
+                        communicationSocket.getInputStream()
+                    )
+                );
 				
-				// Leggo il nome dell'utente che ha spedito una richiesta di amicizia
+				// Read the username of the user who sent a friendship request
 				String potentialFriend = reader.readLine();
 				pendingFriendshipRequests.add(potentialFriend);
 				
@@ -36,7 +38,7 @@ public class FriendshipRequestsListener implements Runnable
 			}
 			catch (IOException e)
 			{
-				System.out.println("Si è verificato un errore in FriendshipRequestsListener.");
+				System.out.println("An error occurred in FriendshipRequestsListener.");
 				e.printStackTrace();
 				
 				try

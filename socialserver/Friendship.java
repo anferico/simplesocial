@@ -18,8 +18,7 @@ public class Friendship implements Serializable
 		this.requestDate = new Date();
 	}
 	
-	// Restituisce true se questa amicizia lega 'username1' e 'username2', false
-	// altrimenti
+    // Checks whether this friendship request concerns 'username1' and 'username2'
 	public boolean involves(String username1, String username2) 
 	{
 		return (this.username1 == username1 && this.username2 == username2)

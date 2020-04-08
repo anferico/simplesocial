@@ -9,7 +9,7 @@ public class Program
 {
 	public static void main(String[] args) throws IOException
 	{
-		// Client dell'applicazione Simple Social
+		// Client of the Simple Social application
 		ISocialClient socialClient = new SocialClient();
 		
 		BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
@@ -28,29 +28,29 @@ public class Program
     				switch (op)
     				{
     					case "1": 
-    						// Richiesto invio nuova amicizia
+    						// User wants to send a new friendship request
     						
-    						System.out.println("Immetti l'username dell'utente a cui spedire la richiesta:");
+    						System.out.println("Enter the username of the user you want to send a friendship request to:");
     						String frUsername = inReader.readLine();
 
     						socialClient.sendFriendshipRequest(frUsername);
-    						System.out.println("Richiesta di amicizia inoltrata");
+    						System.out.println("Friendship request has been sent");
     						break;
     						
     					case "2": 
-    						// Richiesta conferma/rifiuto di una richiesta di amicizia
+    						// User wants to accept/deny a friendship request
     						
-    						System.out.println("Immetti l'username di un utente che ti ha spedito una richiesta:");
+    						System.out.println("Enter the username of a user who sent you a friendship request:");
     						String frrUsername = inReader.readLine();
-    						System.out.println("Vuoi accettare la richiesta di amicizia? [S/N]:");
-    						boolean choice = false, unexpectedChoice= false;
+    						System.out.println("Do you want to accept the friendship request? [Y/N]:");
+    						boolean choice = false, unexpectedChoice = false;
     						do
     						{
         						String choiceString = inReader.readLine();
         						switch (choiceString)
         						{
-        							case "S":
-        							case "s":
+        							case "Y":
+        							case "y":
         								choice = true;
         								unexpectedChoice = false;
         								break;
@@ -60,7 +60,7 @@ public class Program
         								unexpectedChoice = false;
         								break;
         							default:
-        								System.out.println("Digita \"S\" o \"N\"");
+        								System.out.println("Enter either \"Y\" or \"N\"");
         								unexpectedChoice = true;
         								break;
         						}
@@ -69,16 +69,16 @@ public class Program
     						socialClient.respondToFriendshipRequest(frrUsername, choice);
     						if (choice == true)
     						{
-    							System.out.println("Hai accordato l'amicizia a " + frrUsername);
+    							System.out.println(frrUsername + " is now your friend");
     						}
     						else
     						{
-    							System.out.println("Hai negato l'amicizia a " + frrUsername);
+    							System.out.println("You've denied a friendship request from " + frrUsername);
     						}
     						break;
     						
     					case "3": 
-    						// Richiesta lista amici
+    						// User wants a list of their friends
     						
     						Iterator<Friend> frIter = socialClient.getFriends().iterator();
     						if (frIter.hasNext())
@@ -93,14 +93,14 @@ public class Program
     						}
     						else
     						{
-    							System.out.println("Attualmente non hai amici");
+    							System.out.println("You don't have any friends yet");
     						}
     						break;
     						
     					case "4": 
-    						// Richiesta lista utenti
+    						// User wants to search for a user
     						
-    						System.out.println("Immetti una chiave di ricerca, oppure lascia vuoto:");
+    						System.out.println("Enter a search key (leave empty to list all users):");
     						String searchKey = inReader.readLine();
     						if (searchKey.equals("\n"))
     						{
@@ -117,32 +117,32 @@ public class Program
     						}
     						else
     						{
-    							System.out.println("La ricerca non ha prodotto risultati");
+    							System.out.println("No results found");
     						}
     						break;
     						
     					case "5": 
-    						// Richiesta pubblicazione contenuto
+    						// User wants to publish something
     						
-    						System.out.println("Immetti ciò che vuoi pubblicare:");
+    						System.out.println("Enter what you want to post:");
     						String content = inReader.readLine();
     						
     						socialClient.publishContent(content);
-    						System.out.println("Contenuto pubblicato con successo");
+    						System.out.println("Post was successful");
     						break;
     						
     					case "6": 
-    						// Richiesta registrazione interesse per un utente
+    						// User wants to follow a user
     						
-    						System.out.println("Immetti l'username di un utente che vuoi seguire:");
+    						System.out.println("Enter the username of a user you want to follow:");
     						String follUsername = inReader.readLine();
     						
     						socialClient.followUser(follUsername);
-    						System.out.println("Stai seguendo " + follUsername);
+    						System.out.println("You're now following " + follUsername);
     						break;
     						
     					case "7": 
-    						// Richiesta lista delle richieste di amicizia in sospeso
+    						// User wants to display pending friendship requests
     						
     						Iterator<String> reqIter = socialClient.getPendingFriendshipRequests().iterator();
     						if (reqIter.hasNext())
@@ -155,12 +155,12 @@ public class Program
     						}
     						else
     						{
-    							System.out.println("Non hai alcuna richiesta di amicizia in sospeso");
+    							System.out.println("You have no pending friendship request");
     						}
     						break;
     						
     					case "8": 
-    						// Richiesta lista contenuti in sospeso
+    						// User wants to display new contents
     						
     						Iterator<String> contIter = socialClient.getContents().iterator();
     						if (contIter.hasNext())
@@ -173,27 +173,27 @@ public class Program
     						}
     						else
     						{
-    							System.out.println("Non hai alcun contenuto da visualizzare");
+    							System.out.println("Nothing to show");
     						}	
     						break;
     						
     					case "9": 
-    						// Richiesto logout
+    						// User wants to log out
     						
     						socialClient.logout();
-    						System.out.println("Logout effettuato");
+    						System.out.println("Logged out");
     						isLoggedIn = false;
     						break;
     						
     					case "10": 
-    						// Richiesta l'uscita dal programma
+    						// User wants to exit the program
     						
     						System.exit(0);
     						break;
     						
     					default: 
     						
-    						System.out.println("Scelta non prevista");
+    						System.out.println("Unexpected choice");
     						break;
     				}
     			}
@@ -202,39 +202,39 @@ public class Program
     				switch (op)
     				{
     					case "1": 
-    						// Richiesta registrazione
+    						// User wants to register
     						
-    						System.out.println("Immetti l'username:");
+    						System.out.println("Choose a username:");
     						String regUsername = inReader.readLine();
-    						System.out.println("Immetti la password:");
+    						System.out.println("Choose a password:");
     						String regPassword = inReader.readLine();
 
     						socialClient.register(regUsername, regPassword);
-    						System.out.println("Registrazione avvenuta con successo");
+    						System.out.println("Registration succeded");
     						break;
     						
     					case "2": 
-    						// Richiesto login
+    						// User wants to log in
     						
-    						System.out.println("Immetti l'username:");
+    						System.out.println("Enter username:");
     						String logUsername = inReader.readLine();
-    						System.out.println("Immetti la password:");
+    						System.out.println("Enter password:");
     						String logPassword = inReader.readLine();
 
     						socialClient.login(logUsername, logPassword);
-    						System.out.println("Login effettuato");
+    						System.out.println("Logged in");
     						isLoggedIn = true;
     						break;
     						
     					case "3": 
-    						// Richiesta l'uscita dal programma
+    						// User wants to exit the program
     						
     						System.exit(0);
     						break;
     						
     					default: 
     						
-    						System.out.println("Scelta non prevista");
+    						System.out.println("Unexpected choice");
     						break;
     				}
     			}
@@ -260,16 +260,16 @@ public class Program
 			System.out.println("=============================================");
 			System.out.println("============== [Simple Social] ==============");
 			System.out.println("=============================================");
-			System.out.println("[1]  Invia una richiesta di amicizia");
-			System.out.println("[2]  Rispondi ad una richiesta di amicizia");
-			System.out.println("[3]  Visualizza la lista degli amici");
-			System.out.println("[4]  Cerca un utente");
-			System.out.println("[5]  Pubblica qualcosa");
-			System.out.println("[6]  Segui un utente");
-			System.out.println("[7]  Visualizza richieste di amicizia");
-			System.out.println("[8]  Visualizza nuovi contenuti");
+			System.out.println("[1]  Send a friendship request");
+			System.out.println("[2]  Accept/deny a friendship request");
+			System.out.println("[3]  Display a list of your friends");
+			System.out.println("[4]  Search for a user");
+			System.out.println("[5]  Post something");
+			System.out.println("[6]  Follow a user");
+			System.out.println("[7]  Display friendship requests");
+			System.out.println("[8]  Show new contents");
 			System.out.println("[9]  Logout");
-			System.out.println("[10] Esci");
+			System.out.println("[10] Quit");
 			System.out.println("=============================================");
 		}
 		else
@@ -278,11 +278,10 @@ public class Program
 			System.out.println("=============================================");
 			System.out.println("============== [Simple Social] ==============");
 			System.out.println("=============================================");
-			System.out.println("[1]  Registrati");
+			System.out.println("[1]  Register");
 			System.out.println("[2]  Login");
-			System.out.println("[3]  Esci");
+			System.out.println("[3]  Quit");
 			System.out.println("=============================================");
 		}
-		
 	}
 }

@@ -22,44 +22,45 @@ public class PostingSupplier implements Runnable
 		try
 		{
 			BufferedReader reader = new BufferedReader(
-										new InputStreamReader(
-											this.communicationSocket.getInputStream()));
+				new InputStreamReader(
+                    this.communicationSocket.getInputStream()
+                )
+            );
 			
-			// Leggo il contenuto che si desidera pubblicare e il token
-			// dalla connessione stabilita col client
-			String content = reader.readLine();
+            // Read the content of the post
+            String content = reader.readLine();
+            // Read the user token
 			String token = reader.readLine();
 			
-			// La risposta da spedire sulla connessione
+			// The reply to be sent over the connection
 			String reply = null;
 			
-			// l'utente che desidera pubblicare il contenuto
+			// The user who issued the posting request
 			SocialUser publisher = manager.userFromToken(token);
 			if (publisher == null)
 			{
-				// L'utente risulta offline
+				// The user appears to be offline
 				reply = "TOKEN_EXPIRED";
 			}
 			else
 			{   
-				// L'utente risulta correttamente online
+				// The user is online
 				 				         							
     			for (String follower : publisher.getFollowers())
     			{	
     				SocialUser followerUser = manager.userFromUsername(follower);
     				if (followerUser.isOnline())
     				{
-    					// Il follower è attualmente online
+    					// The follower is online
     					
-    					// Avverto il SocialClient del follower
+    					// Notify the follower about the newly published content
     					followerUser.getStub().onNewContentPublished(content);
     				}
     				else
     				{
-    					// Il follower è attualmente offline
+    					// The follower is offline
     					
-    					// Memorizzo il contenuto per spedirlo quando il follower
-    					// farà il login
+    					// Save the content for when the follower will be online
     					manager.storeContent(content, follower);
     				}
     			}
@@ -67,11 +68,12 @@ public class PostingSupplier implements Runnable
     			reply = "CONTENT_PUBLISHED";
 			}
 						
-			// Scrivo la risposta (contenente l'esito dell'operazione) al client
+			// Send the reply to the user. It contains the outcome of the request
 			BufferedWriter writer = new BufferedWriter(
-										new OutputStreamWriter(
-											this.communicationSocket.getOutputStream()));
-			
+				new OutputStreamWriter(
+                    this.communicationSocket.getOutputStream()
+                )
+            );
 			writer.write(reply);
 			writer.newLine();
 			writer.flush();
@@ -79,13 +81,13 @@ public class PostingSupplier implements Runnable
 		}
 		catch (IOException e)
 		{
-			System.out.println("Si è verificato un errore durante la pubblicazione del contenuto.");
+			System.out.println("An error occurred while trying to publish the content.");
 		}
 		finally
 		{
 			try
 			{
-				// Chiudo la connessione con il client
+				// CLose the connection with the client
 				if (this.communicationSocket != null) { this.communicationSocket.close(); }				
 			}
 			catch (IOException e) { ; }

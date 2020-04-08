@@ -15,11 +15,11 @@ public class SocialUser implements Serializable
 	private List<String> followers = Collections.synchronizedList(new ArrayList<String>());
 	private transient String sessionToken = null;
 	private transient ISocialFollower stub = null;	
-	// Il socket address al quale l'utente risponde alle richieste di apertura
-	// di una connessione TCP per verificare se è online o meno.
+    // Socket address where the user responds to TCP connection requests aimed 
+    // at probing its state (online or offline)
 	private transient InetSocketAddress probingSockAddress = null;
-	// Il socket address al quale l'utente risponde alle richieste di apertura
-	// di una connessione TCP per spedire il nome di un nuovo amico che vuole aggiungerlo.
+    // Socket address where the user responds to TCP connection requests aimed 
+    // at sending the name of a user who just sent a friendship request
 	private transient InetSocketAddress friendshipRequestsSockAddress = null;
 	
 	public SocialUser(String username, String password)

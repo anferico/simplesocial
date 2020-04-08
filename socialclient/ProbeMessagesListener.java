@@ -19,14 +19,14 @@ public class ProbeMessagesListener implements Runnable
 		{
 			try
 			{
-				// Accolgo richieste di connessione dal server, per dimostrare
-				// che sono online				
-				Socket dummySock = welcomingSocket.accept();
+                // Set out to reply to probing requests from the server
+                Socket dummySock = welcomingSocket.accept();
+    
 				dummySock.close();				
 			}
 			catch (IOException e)
 			{
-				System.out.println("Si è verificato un errore in ProbeMessagesListener.");
+				System.out.println("An error occurred in ProbeMessagesListener.");
 				e.printStackTrace();
 				
 				try

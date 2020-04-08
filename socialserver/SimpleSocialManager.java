@@ -19,7 +19,7 @@ public class SimpleSocialManager implements Serializable
 		restore();
 	}
 	
-	// Restituisce l'unica istanza di questa classe (realizza il pattern Singleton)
+	// Return the only instance of this class (in accordance to the Singleton pattern)
 	public static synchronized SimpleSocialManager getManager()
 	{
 		if (instance == null)
@@ -30,23 +30,25 @@ public class SimpleSocialManager implements Serializable
 		return instance;
 	}
 	
-	// Esegue un backup della rete sociale
+	// Performs a backup of the social network
 	public void backup()
 	{				
 		try
 		{
-			ObjectOutputStream outStream = new ObjectOutputStream(new FileOutputStream("networkState", false));
+			ObjectOutputStream outStream = new ObjectOutputStream(
+                new FileOutputStream("networkState", false)
+            );
 			outStream.writeObject(this);
 			
 			outStream.close();
 		}
 		catch (Exception e)
 		{
-			System.out.println("Errore durante il backup. Dettagli: " + e.getMessage());
+			System.out.println("Backup failed. Details: " + e.getMessage());
 		}
 	}
 	
-	// Ripristina l'ultimo stato della rete sociale
+	// Restore the last state of the social network
 	private void restore()
 	{
 		try
@@ -56,7 +58,7 @@ public class SimpleSocialManager implements Serializable
 			
 			inStream.close();
 			
-			// Ripristino lo stato della rete
+			// Restore network state
 			users = lastSnapshot.users;
 			estabilishedFriendships = lastSnapshot.estabilishedFriendships;
 			pendingFriendships = lastSnapshot.pendingFriendships;
@@ -64,7 +66,7 @@ public class SimpleSocialManager implements Serializable
 		}
 		catch (Exception e)
 		{
-			// Lo stato della rete non era mai stato salvato
+			// The state of the network had never been saved before
 			
 			users = Collections.synchronizedList(new ArrayList<SocialUser>());
 			estabilishedFriendships = Collections.synchronizedList(new ArrayList<Friendship>());
@@ -73,7 +75,7 @@ public class SimpleSocialManager implements Serializable
 		}
 	}
 	
-	// Aggiunge un nuovo utente alla lista degli utenti registrati
+	// Add a new user to the list of registered user
 	public void registerUser(String username, String password)
 	{
 		if (!userExists(username))
@@ -82,8 +84,8 @@ public class SimpleSocialManager implements Serializable
 		}
 	}
 	
-	// Ottiene un riferimento all'oggetto di tipo SocialUser il cui username
-	// coincide con quello passato come parametro
+    // Retrieves the instance of 'SocialUser' that's associated with
+    // the given username
 	public SocialUser userFromUsername(String username)
 	{
 		for (SocialUser u : users)
@@ -97,8 +99,8 @@ public class SimpleSocialManager implements Serializable
 		return null;
 	}
 	
-	// Ottiene un riferimento all'oggetto di tipo SocialUser che rappresenta
-	// l'utente il cui token coincide con quello passato come parametro
+    // Retrieves the instance of 'SocialUser' that's associated with
+    // the given token
 	public SocialUser userFromToken(String token)
 	{
 		for (SocialUser u : users)
@@ -116,15 +118,13 @@ public class SimpleSocialManager implements Serializable
 		return null;
 	}
 	
-	// Restituisce true se esiste un utente con username uguale a quello passato come
-	// parametro, false altrimenti
+    // Tells whether a user with the given username is registered or not
 	public boolean userExists(String username)
 	{
 		return userFromUsername(username) != null;
 	}
 	
-	// Restituisce true se l'utente con username uguale a quello passato come parametro
-	// è online, false altrimenti
+    // Tells if the user associated with the given username is currently online
 	public boolean isUserOnline(String username)
 	{
 		if (userExists(username))
@@ -137,9 +137,8 @@ public class SimpleSocialManager implements Serializable
 		}
 	}
 	
-	// Restituisce true se l'utente con username uguale a quello passato come parametro
-	// ha impostato una password che coincide con quella passata come parametro, false
-	// altrimenti
+    // Tells if the user associated with the given username is registered
+    // and has chosen the given password
 	public boolean isValidPassword(String username, String password)
 	{
 		SocialUser u = userFromUsername(username);
@@ -153,7 +152,7 @@ public class SimpleSocialManager implements Serializable
 		}
 	}
 	
-	// Restituisce true se user1 e user2 sono amici, false altrimenti
+    // Checks whether 'user1' and 'user2' are friends or not
 	public boolean areFriends(String user1, String user2)
 	{
 		for (Friendship ef : estabilishedFriendships)
@@ -166,8 +165,7 @@ public class SimpleSocialManager implements Serializable
 		return false;
 	}
 	
-	// Restituisce true se esiste una richiesta di amicizia in sospeso mandata da 'who'
-	// a 'toWhom', false altrimenti
+    // Checks if 'who' sent a friendship request to 'toWhom'
 	public boolean friendshipRequested(String who, String toWhom)
 	{
 		for (Friendship pf : pendingFriendships)
@@ -180,31 +178,29 @@ public class SimpleSocialManager implements Serializable
 		return false;
 	}
 	
-	// Finalizza una richiesta di amicizia che era in sospeso, stabilendo un nuovo legame
-	// di amicizia tra 'addresser' e 'addressee', oppure lascia invariata la rete di 
-	// amicizie (ciò dipende dalla scelta del destinatario della richiesta).
+    // Finalizes a pending friendship request based on the value of 'grant'. If 'grant' is true,
+    // then 'addresser' and 'addressee' become friends, otherwise nothing changes
 	public void finalizeFriendshipRequest(String addresser, String addressee, boolean grant)
 	{			
 		if (grant == true)
 		{
-    		// Stabilisco l'amicizia tra i due
+    		// Estabilish friendship
     		estabilishedFriendships.add(new Friendship(addresser, addressee));			
 		}
 		
-		// In ogni caso, rimuovo la richiesta originariamente spedita da 'addresser' ad 'addressee'
+		// Remove the friendship request
 		pendingFriendships.removeIf(pf ->
 			pf.getFirstUser().equals(addresser) && pf.getSecondUser().equals(addressee)
 		);
 	}
 	
-	// Registra una richiesta di amicizia spedita da 'addresser' ad 'addressee'.
+	// Takes note of the friendship request sent from 'addresser' to 'addressee'
 	public void registerFriendshipRequest(String addresser, String addressee)
 	{	
-		// Registro la richiesta di amicizia mandata da 'addresser' a 'addressee'
 		pendingFriendships.add(new Friendship(addresser, addressee));
 	}
 	
-	// Restituisce la lista degli amici di 'username'
+	// Returns the list of friends of a given user
 	public List<SocialUser> getFriends(String username)
 	{
 		List<SocialUser> friends = new ArrayList<SocialUser>();
@@ -224,8 +220,7 @@ public class SimpleSocialManager implements Serializable
 		return friends;
 	}
 	
-	// Restituisce la lista di tutti gli utenti registrati, eventualmente
-	// filtrati attraverso il parametro passato
+    // Returns a list of all registered users, filtered by the given search key
 	public List<SocialUser> getUsers(String filter)
 	{
 		List<SocialUser> filteredUsers = new ArrayList<SocialUser>();
@@ -248,7 +243,7 @@ public class SimpleSocialManager implements Serializable
 		return filteredUsers;
 	}
 	
-	// Restituisce gli utenti attualmente online
+	// Returns the list of online users
 	public List<SocialUser> getOnlineUsers()
 	{
 		List<SocialUser> onlineUsers = new ArrayList<SocialUser>();
@@ -263,13 +258,13 @@ public class SimpleSocialManager implements Serializable
 		return onlineUsers;
 	}
 	
-	// Memorizza un contenuto pubblicato che è d'interesse per 'recipient'
+    // Stores some content that 'recipient' is interested in
 	public void storeContent(String content, String recipient)
 	{
 		pendingContents.add(new PendingContent(content, recipient));
 	}
 	
-	// Restituisce (ed elimina) tutti i contenuti in sospeso per l'utente 'username'
+    // Returns (and deletes) all the contents available for a given user to see
 	public List<String> getPendingContents(String username)
 	{
 		List<String> result = new ArrayList<String>();
@@ -278,7 +273,7 @@ public class SimpleSocialManager implements Serializable
 			PendingContent content = pendingContents.get(i);
 			if (content.getRecipient().equals(username))
 			{
-				// Questo contenuto è destinato ad 'username'
+				// This content is for 'username'
 				
 				result.add(content.getContent());
 				pendingContents.remove(i);
@@ -289,25 +284,25 @@ public class SimpleSocialManager implements Serializable
 		return result;
 	}
 	
-	// Aggiorna lo stato di tutti gli utenti
+	// Update the state of all users
 	public void updateUsersState()
 	{
 		for (SocialUser user : users)
 		{
 			if (user.isOnline())
 			{
-				// L'utente risulta online, verifico se lo è davvero
+                // User appears to be online, so I make sure that's
+                // actually the case
 				
 				try
 				{
 					Socket dummySock = new Socket();
 					dummySock.connect(user.getProbingSockAddress());
-					
 					dummySock.close();    			
 				}
 				catch (IOException e)
 				{
-					// L'utente non è online, quindi lo metto offline
+                    // User is NOT online, so I set their state as offline
 					
 					user.setSessionToken(null);
 					user.setProbingSockAddress(null);
@@ -317,15 +312,14 @@ public class SimpleSocialManager implements Serializable
 		}
 	}
 	
-	// Elimina le richieste di amicizia non riscontrate che sono scadute, dove per
-	// scadute s'intende più vecchie di 'expireTime'
+    // Delete friendship requests that are older than 'expireTime'
 	public void deleteExpiredFriendshipRequests(int expireTime)
 	{
 		for (int i = 0; i < pendingFriendships.size(); i++)
 		{
 			Friendship pf = pendingFriendships.get(i);
 			
-			// L'età (in ore) della richiesta di amicizia
+            // "Age" (in hours) of the friendship request
 			long age = (new Date().getTime() - pf.getRequestDate().getTime()) / (1000 * 60 * 60);
 			if (age >= expireTime)
 			{

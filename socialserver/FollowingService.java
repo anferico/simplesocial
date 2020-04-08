@@ -23,7 +23,7 @@ public class FollowingService extends RemoteServer implements IFollowingService
 		{
 			user.setStub(stub);
 			
-			// Recupero eventuali contenuti in sospeso destinati a 'username'
+            // Retrieve available contents for 'username'
 			for (String content : manager.getPendingContents(username))
 			{
 				user.getStub().onNewContentPublished(content);
@@ -43,7 +43,7 @@ public class FollowingService extends RemoteServer implements IFollowingService
 		}
 		else if (interestingUser == null)
 		{
-			throw new SocialException("Stai cercando di seguire un utente non registrato");
+			throw new SocialException("You can't follow an unregistered user");
 		}
 		else
 		{						

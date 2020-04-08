@@ -23,66 +23,65 @@ public class FriendshipRequestSupplier implements Runnable
 		try
 		{
 			BufferedReader reader = new BufferedReader(
-										new InputStreamReader(
-											this.communicationSocket.getInputStream()));
+				new InputStreamReader(
+                    this.communicationSocket.getInputStream()
+                )
+            );
 			
-			// Leggo username dell'utente a cui si vuole inoltrare la richiesta 
-			// e token dalla connessione stabilita col client
-			String addresseeUsername = reader.readLine();
+			// Read the username of the user to whom the friendship request will be sent
+            String addresseeUsername = reader.readLine();
+            // Read the user token
 			String token = reader.readLine();
 			
-			// La risposta da spedire sulla connessione
+			// The reply to be sent over the connection
 			String reply = null;
 			
-			// Il mittente della richiesta di amicizia
+			// The user who issued the friendship request
 			SocialUser addresser = manager.userFromToken(token);
 			if (addresser == null)
 			{
-				// L'utente risulta offline
+				// The user appears to be offline
 				reply = "TOKEN_EXPIRED";
 			}
 			else
 			{   
-				// L'utente risulta correttamente online
+				// The user is online
 				
     			SocialUser addressee = manager.userFromUsername(addresseeUsername);
     			if (addressee == null)
     			{
-    				// Si sta tentando di aggiungere come amico/a un utente che non è registrato
+    				// We're trying to send a friendship request to an unregistered user
     				reply = "UNKNOWN_USER";
     			}
     			else 
     			{
-    				// Il destinatario della richiesta è un utente registrato  				         			
-    				
         			String addresserUsername = addresser.getUsername();
         			
         			if (manager.areFriends(addresserUsername, addresseeUsername) 
     					|| manager.friendshipRequested(addresserUsername, addresseeUsername))
         			{
-        				// I due sono già amici, oppure esiste già una richiesta di
-        				// amicizia spedita da 'addresser' ad 'addressee'
+                        // The two are already friends OR 'addresser' has already sent
+                        // a friendship request to 'addressee'
         				reply = "FRIENDSHIP_REQUEST_ALREADY_SENT";
         			}
         			else
         			{        	
-        				// I due NON erano già amici, inoltre non esisteva alcuna richiesta
-        				// di amicizia spedita da 'addresser' ad 'addressee'
-        				
         				InetSocketAddress addresseeProbSockAddr;
         				Socket addresseeProbSock = null;
         				boolean addresseeOnline = true;
         				try
         				{
-                			// Apro una connessione TCP con il destinatario della richiesta per verificare se è online
+                			// Probe the state of the recipient of the request
             				addresseeProbSockAddr = addressee.getProbingSockAddress();
-            				addresseeProbSock = new Socket(addresseeProbSockAddr.getAddress(), addresseeProbSockAddr.getPort());					
+            				addresseeProbSock = new Socket(
+                                addresseeProbSockAddr.getAddress(), 
+                                addresseeProbSockAddr.getPort()
+                            );					
             				addresseeProbSock.close();
         				}
             			catch (IOException e)
         				{
-            				// Non sono riuscito a stabilire una connessione col destinatario 
-            				// della richiesta di amicizia, quindi questi è offline
+            				//Tthe recipient of this friendship request is offline
             				reply = "USER_OFFLINE";
             				
             				addresseeOnline = false;
@@ -90,28 +89,27 @@ public class FriendshipRequestSupplier implements Runnable
         				
         				if (addresseeOnline)
         				{
-            				// Il destinatario/a della richiesta è online, quindi posso registrare
-        					// la richiesta e avvertirlo/a
+                            // The recipient is online
         					
-        					// Registro la richiesta di amicizia
+        					// Register the friendship request
             				manager.registerFriendshipRequest(addresserUsername, addresseeUsername);
             				reply = "FRIENDSHIP_REQUEST_FORWARDED";
         					
-            				// Apro la socket
+            				// Open the socket
             				InetSocketAddress addresseeFriendsSockAddr = addressee.getFriendshipRequestsSockAddress();
             				Socket addresseeFriendsSock = new Socket(addresseeFriendsSockAddr.getAddress(), addresseeFriendsSockAddr.getPort());
             				
-                			// Comunico al destinatario/a della richiesta chi sta cercando 
-                			// di aggiungerlo/a come amico/a
+                            // Send the friendship request to the recipient
                 			BufferedWriter writer = new BufferedWriter(
-                										new OutputStreamWriter(
-                											addresseeFriendsSock.getOutputStream()));
-                			
+                				new OutputStreamWriter(
+                                    addresseeFriendsSock.getOutputStream()
+                                )
+                            );                			
                 			writer.write(addresserUsername);
                 			writer.newLine();
                 			writer.flush();
                 			            			
-                			// Chiudo la connessione TCP col destinatario della richiesta
+                			// CLose the connection with the recipient
                 			addresseeFriendsSock.close();
         				}
         			}
@@ -119,11 +117,12 @@ public class FriendshipRequestSupplier implements Runnable
 				}
 			}
 						
-			// Scrivo la risposta (contenente l'esito dell'operazione) al mittente
+			// Send the reply to the sender. It contains the outcome of the request
 			BufferedWriter writer = new BufferedWriter(
-										new OutputStreamWriter(
-											this.communicationSocket.getOutputStream()));
-			
+				new OutputStreamWriter(
+                    this.communicationSocket.getOutputStream()
+                )
+            );
 			writer.write(reply);
 			writer.newLine();
 			writer.flush();
@@ -131,13 +130,13 @@ public class FriendshipRequestSupplier implements Runnable
 		}
 		catch (IOException e)
 		{
-			System.out.println("Si è verificato un errore durante l'inoltro della richiesta di amicizia.");
+			System.out.println("An error occurred while sending the friendship request.");
 		}
 		finally
 		{
 			try
 			{
-				// Chiudo la connessione TCP col mittente
+				// Close the connection with the sender
 				if (this.communicationSocket != null) { this.communicationSocket.close(); }				
 			}
 			catch (IOException e) { ; }
